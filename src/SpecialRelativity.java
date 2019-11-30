@@ -7,7 +7,10 @@ public class SpecialRelativity {
 	public static double gm = 6.67408 * Math.pow(10, -11); // in m3 kg^-1 s^-2
 	public static double g = gm/1000;
 	public static double earthMass = 5.9723 * Math.pow(10, 24); // in kg
+	public static double solMass = 1.989 * Math.pow(10, 30); // in kg. Roughly 330,000 Earth Masses
 	public static int earthRadius = 6356; // in km
+	
+	private static MathContext hpmc = new MathContext(1024, RoundingMode.HALF_EVEN);
 	
 	public static double getKinematicTimeDilationByPercentC(double percentC) {
 		double v = (percentC/100)*c;
@@ -75,16 +78,10 @@ public class SpecialRelativity {
 	}
 	public static BigDecimal getGravimetricTimeDilationCoefficientBD(double distance, double mass) {
 		double rs = getSchwarzschildUsingEscapeVelocity(mass*earthMass);
-		BigDecimal div = new BigDecimal(rs, MathContext.DECIMAL128).divide(new BigDecimal(distance), RoundingMode.HALF_EVEN);
-		BigDecimal min = new BigDecimal(1, MathContext.DECIMAL128).subtract(div);
-		BigDecimal coefficient = new BigDecimal(1, MathContext.DECIMAL128).divide(min, 100000, RoundingMode.HALF_EVEN);
+		BigDecimal div = new BigDecimal(rs, hpmc).divide(new BigDecimal(distance, hpmc), 1000, RoundingMode.HALF_EVEN);
+		BigDecimal min = new BigDecimal(1, hpmc).subtract(div);
+		BigDecimal coefficient = new BigDecimal(1, hpmc).divide(min, 1000, RoundingMode.HALF_EVEN);
 		
-		System.out.println();
-		System.out.println("RS is: " + rs + " km");
-		System.out.println("div is: " + div);
-		System.out.println("min is: " + min);
-		System.out.println("coeff is: " + coefficient);
-		System.out.println();
 		return coefficient;
 	}
 	

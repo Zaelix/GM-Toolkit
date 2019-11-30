@@ -2,6 +2,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -23,9 +26,11 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
-public class GMCore implements ActionListener {
+public class GMCore implements ActionListener, KeyListener {
 	public JFrame frame = new JFrame();
+	Timer timer = new Timer(1000/10, this);
 	JPanel panelsPanel = new JPanel();
 	JPanel mainPanel = new JPanel();
 	JPanel timePanel = new JPanel();
@@ -53,6 +58,7 @@ public class GMCore implements ActionListener {
 	JLabel distanceLabel = new JLabel("Distance (km)");
 	JTextField gravimetricMass = new JTextField("0");
 	JTextField gravimetricDistance = new JTextField("0");
+	JLabel ssRadiusLabel = new JLabel("SS Radius: ");
 
 	JButton timeAdvanceButton = new JButton("Advance");
 	JButton saveButton = new JButton("Save");
@@ -96,7 +102,7 @@ public class GMCore implements ActionListener {
 
 		panelsPanel.setPreferredSize(fullDim);
 		mainPanel.setPreferredSize(fullDim);
-		timePanel.setPreferredSize(new Dimension(270, 375));
+		timePanel.setPreferredSize(new Dimension(270, 400));
 		savePanel.setPreferredSize(new Dimension(270, 50));
 		eventPanel.setPreferredSize(fullDim);
 		partyDateLabel.setPreferredSize(fullWidthBarDim);
@@ -126,6 +132,7 @@ public class GMCore implements ActionListener {
 		timePanel.add(distanceLabel);
 		timePanel.add(gravimetricMass);
 		timePanel.add(gravimetricDistance);
+		timePanel.add(ssRadiusLabel);
 
 		addDivider(timePanel, 250);
 
@@ -151,6 +158,7 @@ public class GMCore implements ActionListener {
 		gravimetricMass.setPreferredSize(halfDim);
 		gravimetricDistance.setPreferredSize(halfDim);
 
+		mainPanel.addKeyListener(this);
 		eventsBox.addActionListener(this);
 		eventsPanelToggle.addActionListener(this);
 		timeAdvanceButton.setPreferredSize(fullWidthBarDim);
@@ -158,6 +166,7 @@ public class GMCore implements ActionListener {
 		kinematicRelativityTypeBox.addActionListener(this);
 		saveButton.addActionListener(this);
 		loadButton.addActionListener(this);
+		gravimetricMass.addActionListener(this);
 
 		initializeDates();
 
@@ -171,6 +180,7 @@ public class GMCore implements ActionListener {
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
+		timer.start();
 	}
 
 	private void addDivider(JComponent c, int width) {
@@ -266,6 +276,16 @@ public class GMCore implements ActionListener {
 		earthDateLabel.setText("Earth Date: " + getFormattedDateTime(earthCalendar));
 	}
 
+	private void updateSSRadiusDisplay() {
+		Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+		if (pattern.matcher(gravimetricMass.getText()).matches()) {
+			double d = SpecialRelativity
+					.getSchwarzschildUsingEscapeVelocity(Double.parseDouble(gravimetricMass.getText())*SpecialRelativity.earthMass);
+			ssRadiusLabel.setText("SS Radius: " + String.format("%.4f", d) +" km");
+		}
+		frame.pack();
+	}
+
 	private String getFormattedDate(Calendar cal) {
 		String date = Month.of(cal.get(Calendar.MONTH) + 1).toString() + " " + cal.get(Calendar.DAY_OF_MONTH) + ", "
 				+ cal.get(Calendar.YEAR);
@@ -297,7 +317,7 @@ public class GMCore implements ActionListener {
 		double c = (t + g) - 1;
 		return c;
 	}
-	
+
 	private void advanceTimeByMillis(Calendar cal, double kineticCoefficient, double gravCoefficient) {
 		double timeCoefficient = calculateTimeCoefficient(kineticCoefficient, gravCoefficient);
 		if (cal == partyCalendar) {
@@ -309,12 +329,12 @@ public class GMCore implements ActionListener {
 		long millis = (long) (getMillisToAdvance() * timeCoefficient);
 		long currentTime = cal.getTimeInMillis();
 		System.out.println("TC: " + timeCoefficient + ", KC: " + kineticCoefficient + ", GC: " + gravCoefficient);
-		System.out.println("Current Time is " +currentTime + ", Advancing by " + millis + " milliseconds.");
+		System.out.println("Current Time is " + currentTime + ", Advancing by " + millis + " milliseconds.");
 		printDate(cal);
 		cal.setTimeInMillis(currentTime + millis);
 		System.out.println("-----ADVANCING-----");
 		printDate(cal);
-		
+
 		advanceNextCalendarBD(cal);
 		updateDateDisplay();
 
@@ -323,8 +343,7 @@ public class GMCore implements ActionListener {
 		daysAdvanced.setText("0");
 		frame.pack();
 	}
-	
-	
+
 	private void advanceNextCalendar(Calendar cal) {
 		if (cal == partyCalendar) {
 			double kinetic = 1;
@@ -344,7 +363,7 @@ public class GMCore implements ActionListener {
 			advanceTimeByMillis(earthCalendar, kinetic, gravitational);
 		}
 	}
-	
+
 	private void advanceNextCalendarBD(Calendar cal) {
 		if (cal == partyCalendar) {
 			double kinetic = 1;
@@ -391,6 +410,7 @@ public class GMCore implements ActionListener {
 				+ second + "." + milli);
 		System.out.println(getFormattedDateTime(cal));
 	}
+
 	boolean isLeapYear(int year) {
 		boolean leap = false;
 		if (year % 4 == 0) {
@@ -439,5 +459,27 @@ public class GMCore implements ActionListener {
 			panelsPanel.add(eventPanel);
 			frame.pack();
 		}
+
+		if (e.getSource() == timer) {
+			updateSSRadiusDisplay();
+		}
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println(e.getKeyChar());
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 }
