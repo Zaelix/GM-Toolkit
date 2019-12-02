@@ -12,7 +12,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.regex.Pattern;
@@ -242,6 +241,37 @@ public class GMCore implements ActionListener, KeyListener {
 		descriptionLabel.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(descriptionLabel);
 	}
+	
+	public void createEventInputPanel() {
+		eventPanel.removeAll();
+		JLabel nameLabelText = new JLabel("EVENT NAME");
+		nameLabelText.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(nameLabelText);
+
+		JTextField nameLabel = new JTextField();
+		nameLabel.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(nameLabel);
+
+		addDivider(eventPanel, 250);
+
+		JLabel dateLabelText = new JLabel("DATE");
+		dateLabelText.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(dateLabelText);
+
+		JTextField dateLabel = new JTextField();
+		dateLabel.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(dateLabel);
+
+		addDivider(eventPanel, 250);
+
+		JLabel descriptionLabelText = new JLabel("DESCRIPTION");
+		descriptionLabelText.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(descriptionLabelText);
+
+		JTextField descriptionLabel = new JTextField();
+		descriptionLabel.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(descriptionLabel);
+	}
 
 	public void addEvent(String name, Calendar date, String description) {
 		events.add(new SREvent(name, date, description));
@@ -306,7 +336,7 @@ public class GMCore implements ActionListener, KeyListener {
 	
 	public static boolean loadEvents() {
 		System.out.println("Loading events...");
-		
+		events = (ArrayList<SREvent>) loadData("src/events.dat");
 		return true;
 	}
 
@@ -470,9 +500,11 @@ public class GMCore implements ActionListener, KeyListener {
 			// saveDates();
 			Calendar[] data = { partyCalendar, earthCalendar };
 			saveData("src/dates.dat", data);
+			saveData("src/events.dat", events);
 		}
 		if (e.getSource() == loadButton) {
 			loadDates();
+			loadEvents();
 			updateDateDisplay();
 		}
 		if (e.getSource() == timeAdvanceButton) {
