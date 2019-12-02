@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -30,7 +31,7 @@ import javax.swing.Timer;
 
 public class GMCore implements ActionListener, KeyListener {
 	public JFrame frame = new JFrame();
-	Timer timer = new Timer(1000/10, this);
+	Timer timer = new Timer(1000 / 10, this);
 	JPanel panelsPanel = new JPanel();
 	JPanel mainPanel = new JPanel();
 	JPanel timePanel = new JPanel();
@@ -39,7 +40,7 @@ public class GMCore implements ActionListener, KeyListener {
 	JLabel partyDateLabel = new JLabel();
 	JLabel earthDateLabel = new JLabel();
 	JComboBox<String> eventsBox = new JComboBox<String>();
-	
+
 	JLabel eventsPanelToggleLabel = new JLabel("Show Events Panel");
 	JCheckBox eventsPanelToggle = new JCheckBox();
 
@@ -50,10 +51,10 @@ public class GMCore implements ActionListener, KeyListener {
 	JTextField hoursAdvanced = new JTextField("0");
 	JTextField minutesAdvanced = new JTextField("0");
 	JTextField convertField = new JTextField("0");
-	
+
 	// Conversion stuff
 	JPanel conversionPanel = new JPanel();
-	String[] convertStrings = {"Light Second", "Light Minute", "Light Hour", "Light Day", "Light Year"};
+	String[] convertStrings = { "Light Second", "Light Minute", "Light Hour", "Light Day", "Light Year" };
 	JComboBox<String> convertBox = new JComboBox<String>(convertStrings);
 	JLabel convertResultLabel = new JLabel();
 
@@ -71,9 +72,11 @@ public class GMCore implements ActionListener, KeyListener {
 	JButton timeAdvanceButton = new JButton("Advance");
 	JButton saveButton = new JButton("Save");
 	JButton loadButton = new JButton("Load");
+	JButton addEventButton = new JButton("+");
 
 	Dimension fullDim = new Dimension(270, 600);
 	Dimension fullWidthBarDim = new Dimension(250, 25);
+	Dimension eventsBoxDim = new Dimension(210, 25);
 	Dimension timeAdvanceDim = new Dimension(80, 30);
 	Dimension timeAdvanceLabelDim = new Dimension(80, 20);
 	Dimension halfDim = new Dimension(122, 30);
@@ -83,8 +86,9 @@ public class GMCore implements ActionListener, KeyListener {
 
 	static ArrayList<SREvent> events = new ArrayList<SREvent>();
 
-    DecimalFormat decimalFormat = new DecimalFormat("#.##");
-    
+	DecimalFormat decimalFormat = new DecimalFormat("#.##");
+	boolean isDisplayingEventsInputPanel = false;
+
 	public static void main(String[] args) {
 		GMCore core = new GMCore();
 		core.start();
@@ -106,6 +110,7 @@ public class GMCore implements ActionListener, KeyListener {
 		timePanel.add(partyDateLabel);
 		timePanel.add(earthDateLabel);
 		timePanel.add(eventsBox);
+		timePanel.add(addEventButton);
 		timePanel.add(eventsPanelToggleLabel);
 		timePanel.add(eventsPanelToggle);
 		timePanel.setBackground(new Color(150, 150, 200));
@@ -120,7 +125,9 @@ public class GMCore implements ActionListener, KeyListener {
 		partyDateLabel.setPreferredSize(fullWidthBarDim);
 		earthDateLabel.setPreferredSize(fullWidthBarDim);
 
-		eventsBox.setPreferredSize(fullWidthBarDim);
+		eventsBox.setPreferredSize(eventsBoxDim);
+		addEventButton.setFont(new Font("Arial", Font.BOLD, 20));
+		addEventButton.setPreferredSize(new Dimension(30, 25));
 		eventsPanelToggleLabel.setPreferredSize(new Dimension(225, 25));
 		eventsPanelToggle.setPreferredSize(new Dimension(25, 25));
 
@@ -149,7 +156,7 @@ public class GMCore implements ActionListener, KeyListener {
 		addDivider(timePanel, 250);
 
 		timePanel.add(timeAdvanceButton);
-		
+
 		addDivider(timePanel, 250);
 
 		daysAdvancedLabel.setPreferredSize(timeAdvanceLabelDim);
@@ -181,7 +188,7 @@ public class GMCore implements ActionListener, KeyListener {
 		convertField.setPreferredSize(halfDim);
 		convertResultLabel.setPreferredSize(fullWidthBarDim);
 		convertBox.addActionListener(this);
-		
+
 		mainPanel.addKeyListener(this);
 		eventsBox.addActionListener(this);
 		eventsPanelToggle.addActionListener(this);
@@ -191,6 +198,7 @@ public class GMCore implements ActionListener, KeyListener {
 		saveButton.addActionListener(this);
 		loadButton.addActionListener(this);
 		gravimetricMass.addActionListener(this);
+		addEventButton.addActionListener(this);
 
 		initializeDates();
 		initializeEvents();
@@ -200,9 +208,9 @@ public class GMCore implements ActionListener, KeyListener {
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		timer.start();
-		
-	    decimalFormat.setGroupingUsed(true);
-	    decimalFormat.setGroupingSize(3);
+
+		decimalFormat.setGroupingUsed(true);
+		decimalFormat.setGroupingSize(3);
 	}
 
 	private void addDivider(JComponent c, int width) {
@@ -241,7 +249,7 @@ public class GMCore implements ActionListener, KeyListener {
 		descriptionLabel.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(descriptionLabel);
 	}
-	
+
 	public void createEventInputPanel() {
 		eventPanel.removeAll();
 		JLabel nameLabelText = new JLabel("EVENT NAME");
@@ -271,6 +279,11 @@ public class GMCore implements ActionListener, KeyListener {
 		JTextField descriptionLabel = new JTextField();
 		descriptionLabel.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(descriptionLabel);
+		
+		JButton addEvent = new JButton("Add Event");
+		addEvent.setPreferredSize(timeAdvanceDim);
+		addEvent.addActionListener(this);
+		eventPanel.add(addEvent);
 	}
 
 	public void addEvent(String name, Calendar date, String description) {
@@ -305,7 +318,7 @@ public class GMCore implements ActionListener, KeyListener {
 			return null;
 		}
 	}
-	
+
 	private void initializeEvents() {
 
 		Calendar crash = Calendar.getInstance();
@@ -333,7 +346,7 @@ public class GMCore implements ActionListener, KeyListener {
 		partyCalendar = calendars[0];
 		earthCalendar = calendars[1];
 	}
-	
+
 	public static boolean loadEvents() {
 		System.out.println("Loading events...");
 		events = (ArrayList<SREvent>) loadData("src/events.dat");
@@ -348,17 +361,17 @@ public class GMCore implements ActionListener, KeyListener {
 	private void updateSSRadiusDisplay() {
 		Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 		if (pattern.matcher(gravimetricMass.getText()).matches()) {
-			double d = SpecialRelativity
-					.getSchwarzschildUsingEscapeVelocity(Double.parseDouble(gravimetricMass.getText())*SpecialRelativity.earthMass);
-			ssRadiusLabel.setText("SS Radius: " + String.format("%.4f", d) +" km");
+			double d = SpecialRelativity.getSchwarzschildUsingEscapeVelocity(
+					Double.parseDouble(gravimetricMass.getText()) * SpecialRelativity.earthMass);
+			ssRadiusLabel.setText("SS Radius: " + String.format("%.4f", d) + " km");
 		}
 	}
-	
+
 	private void updateConvertDisplay() {
 		Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 		BigDecimal conversionRate = BigDecimal.ONE;
 		BigDecimal ls = new BigDecimal(299792, SpecialRelativity.hpmc);
-		switch((String)convertBox.getSelectedItem()) {
+		switch ((String) convertBox.getSelectedItem()) {
 		case "Light Second":
 			conversionRate = ls;
 			break;
@@ -369,10 +382,11 @@ public class GMCore implements ActionListener, KeyListener {
 			conversionRate = ls.multiply(new BigDecimal(3600, SpecialRelativity.hpmc), SpecialRelativity.hpmc);
 			break;
 		case "Light Day":
-			conversionRate = ls.multiply(new BigDecimal(3600*24, SpecialRelativity.hpmc), SpecialRelativity.hpmc);
+			conversionRate = ls.multiply(new BigDecimal(3600 * 24, SpecialRelativity.hpmc), SpecialRelativity.hpmc);
 			break;
 		case "Light Year":
-			conversionRate = ls.multiply(new BigDecimal(3600*24*365, SpecialRelativity.hpmc), SpecialRelativity.hpmc);
+			conversionRate = ls.multiply(new BigDecimal(3600 * 24 * 365, SpecialRelativity.hpmc),
+					SpecialRelativity.hpmc);
 			break;
 		default:
 			conversionRate = BigDecimal.ONE;
@@ -380,7 +394,8 @@ public class GMCore implements ActionListener, KeyListener {
 		}
 		if (pattern.matcher(convertField.getText()).matches()) {
 			double count = Double.parseDouble(convertField.getText());
-			BigDecimal result = conversionRate.multiply(new BigDecimal(count, SpecialRelativity.hpmc), SpecialRelativity.hpmc);
+			BigDecimal result = conversionRate.multiply(new BigDecimal(count, SpecialRelativity.hpmc),
+					SpecialRelativity.hpmc);
 			double d = result.doubleValue();
 			convertResultLabel.setText(decimalFormat.format(d) + " km");
 		}
@@ -430,7 +445,6 @@ public class GMCore implements ActionListener, KeyListener {
 		hoursAdvanced.setText("0");
 		daysAdvanced.setText("0");
 	}
-
 
 	private void advanceNextCalendarBD(Calendar cal) {
 		if (cal == partyCalendar) {
@@ -496,22 +510,45 @@ public class GMCore implements ActionListener, KeyListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == saveButton) {
-			// saveDates();
-			Calendar[] data = { partyCalendar, earthCalendar };
-			saveData("src/dates.dat", data);
-			saveData("src/events.dat", events);
+		
+		
+		if(e.getSource() instanceof JButton) {
+			JButton pressed = (JButton)e.getSource();
+			if (pressed == timeAdvanceButton) {
+				advanceTimeByMillis(partyCalendar, 1, 1);
+			}
+			if (pressed == saveButton) {
+				// saveDates();
+				Calendar[] data = { partyCalendar, earthCalendar };
+				saveData("src/dates.dat", data);
+				saveData("src/events.dat", events);
+			}
+			if (pressed == loadButton) {
+				loadDates();
+				loadEvents();
+				updateDateDisplay();
+			}
+			if(pressed.getText().equals("Add Event")) {
+				
+			}
+			if (pressed == addEventButton) {
+				isDisplayingEventsInputPanel = !isDisplayingEventsInputPanel;
+				if (isDisplayingEventsInputPanel) {
+					panelsPanel.setPreferredSize(new Dimension(fullDim.width * 2 + 10, fullDim.height));
+					createEventInputPanel();
+					panelsPanel.add(eventPanel);
+				}
+				else {
+					panelsPanel.setPreferredSize(fullDim);
+					panelsPanel.remove(eventPanel);
+					eventsPanelToggle.setSelected(false);
+				}
+			}
 		}
-		if (e.getSource() == loadButton) {
-			loadDates();
-			loadEvents();
-			updateDateDisplay();
-		}
-		if (e.getSource() == timeAdvanceButton) {
-			advanceTimeByMillis(partyCalendar, 1, 1);
-		}
+		
 
 		if (e.getSource() == eventsPanelToggle) {
+			isDisplayingEventsInputPanel = false;
 			if (eventsPanelToggle.isSelected()) {
 				panelsPanel.setPreferredSize(new Dimension(fullDim.width * 2 + 10, fullDim.height));
 				createEventPanel(events.get(eventsBox.getSelectedIndex()));
@@ -527,8 +564,8 @@ public class GMCore implements ActionListener, KeyListener {
 			createEventPanel(events.get(eventsBox.getSelectedIndex()));
 			panelsPanel.add(eventPanel);
 		}
-		
-		if(e.getSource() == convertBox) {
+
+		if (e.getSource() == convertBox) {
 			updateConvertDisplay();
 		}
 
