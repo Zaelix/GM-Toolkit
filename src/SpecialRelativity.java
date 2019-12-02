@@ -10,7 +10,7 @@ public class SpecialRelativity {
 	public static double solMass = 1.989 * Math.pow(10, 30); // in kg. Roughly 330,000 Earth Masses
 	public static int earthRadius = 6356; // in km
 	
-	private static MathContext hpmc = new MathContext(1024, RoundingMode.HALF_EVEN);
+	public static MathContext hpmc = new MathContext(1024, RoundingMode.HALF_EVEN);
 	
 	public static double getKinematicTimeDilationByPercentC(double percentC) {
 		double v = (percentC/100)*c;
