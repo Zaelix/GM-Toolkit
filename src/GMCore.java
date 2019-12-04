@@ -294,7 +294,7 @@ public class GMCore implements ActionListener, KeyListener {
 		try (FileOutputStream fos = new FileOutputStream(new File(fileName));
 				ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 			oos.writeObject(data);
-			System.out.println("Data saved successfully!");
+			System.out.println(fileName.replace("src/", "") + " saved successfully!");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -306,7 +306,7 @@ public class GMCore implements ActionListener, KeyListener {
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			Object data = ois.readObject();
 			ois.close();
-			System.out.println("Data loaded successfully!");
+			System.out.println(fileName.replace("src/", "") + " loaded successfully!");
 			return data;
 		} catch (IOException e) {
 			e.printStackTrace();
