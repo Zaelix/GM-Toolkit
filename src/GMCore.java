@@ -81,6 +81,11 @@ public class GMCore implements ActionListener, KeyListener {
 	Dimension timeAdvanceLabelDim = new Dimension(80, 20);
 	Dimension halfDim = new Dimension(122, 30);
 
+	// Event Input declarations
+	JTextField nameInputField;
+	JTextField dateInputField;
+	JTextField descriptionInputField;
+	
 	static Calendar partyCalendar;
 	static Calendar earthCalendar;
 
@@ -248,6 +253,11 @@ public class GMCore implements ActionListener, KeyListener {
 		JLabel descriptionLabel = new JLabel(e.description);
 		descriptionLabel.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(descriptionLabel);
+		
+		JButton deleteEvent = new JButton("Delete Event");
+		deleteEvent.setPreferredSize(eventsBoxDim);
+		deleteEvent.addActionListener(this);
+		eventPanel.add(deleteEvent);
 	}
 
 	public void createEventInputPanel() {
@@ -256,9 +266,9 @@ public class GMCore implements ActionListener, KeyListener {
 		nameLabelText.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(nameLabelText);
 
-		JTextField nameLabel = new JTextField();
-		nameLabel.setPreferredSize(fullWidthBarDim);
-		eventPanel.add(nameLabel);
+		nameInputField = new JTextField();
+		nameInputField.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(nameInputField);
 
 		addDivider(eventPanel, 250);
 
@@ -266,9 +276,9 @@ public class GMCore implements ActionListener, KeyListener {
 		dateLabelText.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(dateLabelText);
 
-		JTextField dateLabel = new JTextField();
-		dateLabel.setPreferredSize(fullWidthBarDim);
-		eventPanel.add(dateLabel);
+		dateInputField = new JTextField();
+		dateInputField.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(dateInputField);
 
 		addDivider(eventPanel, 250);
 
@@ -276,18 +286,28 @@ public class GMCore implements ActionListener, KeyListener {
 		descriptionLabelText.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(descriptionLabelText);
 
-		JTextField descriptionLabel = new JTextField();
-		descriptionLabel.setPreferredSize(fullWidthBarDim);
-		eventPanel.add(descriptionLabel);
+		descriptionInputField = new JTextField();
+		descriptionInputField.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(descriptionInputField);
 		
 		JButton addEvent = new JButton("Add Event");
-		addEvent.setPreferredSize(timeAdvanceDim);
+		addEvent.setPreferredSize(eventsBoxDim);
 		addEvent.addActionListener(this);
 		eventPanel.add(addEvent);
 	}
+	
+	public void destroyEventPanel() {
+		panelsPanel.setPreferredSize(fullDim);
+		panelsPanel.remove(eventPanel);
+		eventsPanelToggle.setSelected(false);
+	}
 
 	public void addEvent(String name, Calendar date, String description) {
-		events.add(new SREvent(name, date, description));
+		addEvent(new SREvent(name, date, description));
+	}
+	public void addEvent(SREvent e) {
+		events.add(e);
+		populateEventBox();
 	}
 
 	private static void saveData(String fileName, Object data) {
@@ -415,7 +435,27 @@ public class GMCore implements ActionListener, KeyListener {
 			eventsBox.addItem(eventNames[i]);
 		}
 	}
+	public SREvent createEvent(String name, String time, String desc) {
+		SREvent e = new SREvent(name, getDateFromString(time), desc);
+		return e;
+	}
+	// -------------------------END EVENTS---------------------------
 
+	public Calendar getDateFromString(String s) {
+		Calendar c = Calendar.getInstance();
+		String[] cal = s.split(" ");
+		String[] date = cal[0].split("\\.");
+		String[] time = cal[1].split(":");
+		int month = Integer.parseInt(date[0])-1;
+		int day = Integer.parseInt(date[1]);
+		int year = Integer.parseInt(date[2]);
+		
+		int hour = Integer.parseInt(time[0]);
+		int minute = Integer.parseInt(time[1]);
+		int second = Integer.parseInt(time[2]);
+		c.set(year, month, day, hour, minute, second);
+		return c;
+	}
 	private double calculateTimeCoefficient(double t, double g) {
 		double c = (t + g) - 1;
 		return c;
@@ -529,7 +569,14 @@ public class GMCore implements ActionListener, KeyListener {
 				updateDateDisplay();
 			}
 			if(pressed.getText().equals("Add Event")) {
-				
+				addEvent(createEvent(nameInputField.getText(), dateInputField.getText(), descriptionInputField.getText()));
+			}
+			
+			if(pressed.getText().equals("Delete Event")) {
+				events.remove(eventsBox.getSelectedIndex());
+				isDisplayingEventsInputPanel = false;
+				destroyEventPanel();
+				populateEventBox();
 			}
 			if (pressed == addEventButton) {
 				isDisplayingEventsInputPanel = !isDisplayingEventsInputPanel;
@@ -539,9 +586,7 @@ public class GMCore implements ActionListener, KeyListener {
 					panelsPanel.add(eventPanel);
 				}
 				else {
-					panelsPanel.setPreferredSize(fullDim);
-					panelsPanel.remove(eventPanel);
-					eventsPanelToggle.setSelected(false);
+					destroyEventPanel();
 				}
 			}
 		}
@@ -549,7 +594,7 @@ public class GMCore implements ActionListener, KeyListener {
 
 		if (e.getSource() == eventsPanelToggle) {
 			isDisplayingEventsInputPanel = false;
-			if (eventsPanelToggle.isSelected()) {
+			if (eventsPanelToggle.isSelected() && eventsBox.getSelectedIndex() != -1) {
 				panelsPanel.setPreferredSize(new Dimension(fullDim.width * 2 + 10, fullDim.height));
 				createEventPanel(events.get(eventsBox.getSelectedIndex()));
 				panelsPanel.add(eventPanel);
