@@ -88,6 +88,8 @@ public class GMCore implements ActionListener, KeyListener {
 	
 	static Calendar partyCalendar;
 	static Calendar earthCalendar;
+	static Calendar endTimesCalendar;
+	static SREvent endTimes;
 
 	static ArrayList<SREvent> events = new ArrayList<SREvent>();
 
@@ -100,6 +102,10 @@ public class GMCore implements ActionListener, KeyListener {
 	}
 
 	private void start() {
+		endTimesCalendar = Calendar.getInstance();
+		endTimesCalendar.set(61616, 6, 1, 6, 16, 16);
+		endTimes = new SREvent("End Times", endTimesCalendar, "The cataclysmic end of the galaxy.");
+		
 		frame.add(panelsPanel);
 		panelsPanel.add(mainPanel);
 		mainPanel.add(timePanel);
@@ -342,11 +348,12 @@ public class GMCore implements ActionListener, KeyListener {
 	private void initializeEvents() {
 
 		Calendar crash = Calendar.getInstance();
-		crash.set(2073, 7, 1, 14, 33, 50);
-		Calendar eruption = Calendar.getInstance();
-		eruption.set(2073, 7, 1, 14, 33, 50);
-		events.add(new SREvent("Crash", crash, "The first death event"));
-		events.add(new SREvent("Eruption", eruption, "Exploding mountains!"));
+		crash.set(2073, 7, 24, 14, 33, 50);
+		Calendar arrival = Calendar.getInstance();
+		arrival.set(2073, 8, 12, 14, 33, 50);
+		events.add(new SREvent("Age of Energy begins", arrival, "The wraith energy has followed the warp trail to Ross 128b."));
+		events.add(new SREvent("Warp Signature", crash, "A ship arrives from warp in high atmosphere, on a collision course with the planet."));
+		events.add(endTimes);
 	}
 
 	// ----------------------------DATES----------------------------
@@ -428,6 +435,7 @@ public class GMCore implements ActionListener, KeyListener {
 
 	// ----------------------------EVENTS----------------------------
 	private void populateEventBox() {
+		events = sortEventsByDate();
 		eventsBox.removeAllItems();
 		String[] eventNames = new String[events.size()];
 		for (int i = 0; i < events.size(); i++) {
@@ -435,9 +443,49 @@ public class GMCore implements ActionListener, KeyListener {
 			eventsBox.addItem(eventNames[i]);
 		}
 	}
+	
 	public SREvent createEvent(String name, String time, String desc) {
 		SREvent e = new SREvent(name, getDateFromString(time), desc);
 		return e;
+	}
+	
+	public ArrayList<SREvent> sortEventsByDate(){
+		ArrayList<SREvent> sorted = new ArrayList<SREvent>();
+		
+		while(events.size()>0) {
+			sorted.add(popEarliestEvent());
+		}
+		
+		return sorted;
+	}
+	
+	public int getEarliestEventIndex() {
+		SREvent earliest = endTimes;
+		int index = -1;
+		for(int i = 0; i < events.size(); i++) {
+			if(events.get(i).isSoonerThan(earliest)) {
+				earliest = events.get(i);
+				index = i;
+			}
+		}
+		//System.out.println("Size is: " + events.size() + ", index: " + index);
+		return index;
+	}
+	
+	public SREvent getEarliestEvent() {
+		return events.get(getEarliestEventIndex());
+	}
+	
+	public SREvent popEarliestEvent() {
+		int i = getEarliestEventIndex();
+		if(i != -1) {
+		SREvent e = events.get(i);
+		events.remove(i);
+		return e;
+		}
+		else {
+			return null;
+		}
 	}
 	// -------------------------END EVENTS---------------------------
 
@@ -566,10 +614,12 @@ public class GMCore implements ActionListener, KeyListener {
 			if (pressed == loadButton) {
 				loadDates();
 				loadEvents();
+				populateEventBox();
 				updateDateDisplay();
 			}
 			if(pressed.getText().equals("Add Event")) {
 				addEvent(createEvent(nameInputField.getText(), dateInputField.getText(), descriptionInputField.getText()));
+				destroyEventPanel();
 			}
 			
 			if(pressed.getText().equals("Delete Event")) {

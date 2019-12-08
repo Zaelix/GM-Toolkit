@@ -16,8 +16,9 @@ public class SREvent implements Serializable{
 		this.description = description;
 	}
 	
-	public boolean isSoonerThan(Calendar c) {
-		int comp = date.compareTo(c);
+	public boolean isSoonerThan(SREvent e) {
+		int comp = date.compareTo(e.date);
+		//System.out.println("Comparing " + name + " to " + e.name + ": " + comp);
 		if(comp <= 0) {
 			return true;
 		}
