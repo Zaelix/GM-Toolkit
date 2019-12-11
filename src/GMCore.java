@@ -250,6 +250,10 @@ public class GMCore implements ActionListener, KeyListener {
 		dateLabel.setPreferredSize(fullWidthBarDim);
 		eventPanel.add(dateLabel);
 
+		JLabel timeGap = new JLabel(e.getTimeTo(partyCalendar));
+		timeGap.setPreferredSize(fullWidthBarDim);
+		eventPanel.add(timeGap);
+		
 		addDivider(eventPanel, 250);
 
 		JLabel descriptionLabelText = new JLabel("DESCRIPTION");
